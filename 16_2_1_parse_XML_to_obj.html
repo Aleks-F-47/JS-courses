@@ -1,0 +1,76 @@
+<html>
+
+<body>
+  <p id="demo"></p>
+  <p style="color: rgb(255, 115, 0);">(looking to console, please)</p>
+
+  <script>
+    var text, parser, xmlDoc;
+
+    text =
+      "<list>" +
+      "<student>" +
+      "<name lang='en'>" +
+      "<first>Ivan</first>" +
+      "<second>Ivanov</second>" +
+      "</name>" +
+      "<age>35</age>" +
+      "<prof>teacher</prof>" +
+      "</student>" +
+      "<student>" +
+      "<name lang='ru'>" +
+      "<first>Петр</first>" +
+      "<second>Петров</second>" +
+      "</name>" +
+      "<age>58</age>" +
+      "<prof>driver</prof>" +
+      "</student>" +
+      "</list>";
+
+    parser = new DOMParser();
+    xmlDoc = parser.parseFromString(text, "text/xml");
+
+    var rootElement = xmlDoc.documentElement;
+    var children = rootElement.childNodes;
+    var resultOut = [];
+    a = 0;
+
+    for (let key in xmlDoc) {
+      if (xmlDoc.documentElement.childNodes.length <= a) {
+        break;
+      }
+      const nameChild = children[a].querySelector("name");
+      const nameLang = nameChild.getAttribute("lang");
+      const nameFirst =
+        xmlDoc.getElementsByTagName("first")[a].childNodes[0].nodeValue;
+      const nameSecond =
+        xmlDoc.getElementsByTagName("second")[a].childNodes[0].nodeValue;
+      const age =
+        xmlDoc.getElementsByTagName("age")[a].childNodes[0].nodeValue;
+      const prof =
+        xmlDoc.getElementsByTagName("prof")[a].childNodes[0].nodeValue;
+      let ToOut = {
+        name: nameFirst + " " + nameSecond,
+        age: Number(age),
+        prof: prof,
+        lang: nameLang,
+      };
+      resultOut.push(ToOut);
+      a = a + 1;
+    }
+
+    const result = {};
+    result["list"] = resultOut;
+    console.log(JSON.stringify(result));
+    document.getElementById("demo").innerHTML = JSON.stringify(result);
+
+    var examle = {
+      list: [
+        { name: "Ivan Ivanov", age: 35, prof: "teacher", lang: "en" },
+        { name: "Петр Петров", age: 58, prof: "driver", lang: "ru" },
+      ],
+    };
+  </script>
+</body>
+
+</html>

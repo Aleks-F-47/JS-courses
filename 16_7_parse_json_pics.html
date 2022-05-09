@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>16_7_json_pics</title>
+</head>
+
+<body>
+    <div>
+        <input type="number" id="pageNum" placeholder="Page">
+        <input type="number" id="limitNum" placeholder="Limit">
+        <input type="submit" onclick="checkFields()">Enter user ID</button>
+    </div>
+    <div id="errors"></div>
+    <div id="result"></div>
+</body>
+<script>
+    if (localStorage.pageNumLimit != null) {
+        let pageNum = (JSON.parse(localStorage.pageNumLimit).page)
+        let limitNum = (JSON.parse(localStorage.pageNumLimit).limit)
+        reqDate(pageNum, limitNum);
+    };
+    function checkFields() {
+        var pageNum = document.getElementById("pageNum").value;
+        var limitNum = document.getElementById("limitNum").value;
+        if (pageNum == "" || limitNum == "") {
+            document.querySelector("#errors").innerHTML = "Введите оба числа";
+        }
+        else if (pageNum > 10 && limitNum > 10 || pageNum < 1 && limitNum < 1) {
+            document.querySelector("#errors").innerHTML = "Номер страницы и лимит вне диапазона от 1 до 10";
+            limitNum = document.getElementById("limitNum").value = '';
+            pageNum = document.getElementById("pageNum").value = '';
+        }
+        else if (1 > pageNum || pageNum > 10) {
+            document.querySelector("#errors").innerHTML = "Номер страницы вне диапазона от 1 до 10";
+            pageNum = document.getElementById("pageNum").value = '';
+        }
+        else if (1 > limitNum || limitNum > 10) {
+            document.querySelector("#errors").innerHTML = "Лимит вне диапазона от 1 до 10";
+            limitNum = document.getElementById("limitNum").value = '';
+        }
+        else {
+            document.querySelector("#errors").innerHTML = "";
+            let nowDate = new Date();
+            let pageDate = { page: pageNum, limit: limitNum, time: nowDate };
+            localStorage.setItem("pageNumLimit", JSON.stringify(pageDate));
+            reqDate(pageNum, limitNum);
+
+        }
+    };
+    async function reqDate(pageNum, limitNum) {
+        try {
+            let response = await fetch(
+                `https://picsum.photos/v2/list?page=${pageNum}&limit=${limitNum}`
+            );
+            if (response.ok) {
+                let data = await response.json();
+                let dataJSON = JSON.stringify(data);
+                toHtml(data)
+            }
+
+        }
+        catch (error) {
+            document.querySelector("#errors").innerHTML = ("ошибка получения данных - ", error);
+        }
+    };
+
+    function toHtml(data) {
+        html = "";
+        data.forEach((a) => {
+            if (a.author || a.download_url) {
+                html += `
+                <ul style = "list-style:none;">
+                <li>Author: ${a.author}</li>
+                <li><img src="${a.download_url}" style="width:30%;height:auto;"><li>
+                </ul>`;
+            }
+        });
+        document.querySelector("#result").innerHTML = html;
+    };
+
+</script>
+
+</html>

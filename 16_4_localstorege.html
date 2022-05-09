@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebStorage</title>
+</head>
+
+<body>
+  <input type="button" id="send" value="Clear WebStorage" />
+</body>
+<script>
+  if (localStorage.UserKey == null) {
+    localStorage.clear();
+    addDateToWebStorage();
+  } else if (localStorage.UserKey != null) {
+    let msgname = (JSON.parse(localStorage.UserKey).name)
+    let msgtime = (JSON.parse(localStorage.UserKey).time)
+    alert("Добрый день! " + msgname + ". Давно не виделись. В последний раз вы были у нас " + msgtime)
+  }
+  function addDateToWebStorage() {
+    let username = prompt("Enter your name");
+    let nowDate = new Date();
+    let userDate = { name: username, time: nowDate };
+    localStorage.setItem("UserKey", JSON.stringify(userDate));
+  }
+  function clearStor() {
+    localStorage.clear();
+    alert("localStorage очищен")
+  }
+  const btn = document.querySelector("#send")
+  btn.addEventListener("click", clearStor);
+</script>
+
+</html>
