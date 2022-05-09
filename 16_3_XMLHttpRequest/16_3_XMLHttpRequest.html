@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XMLHttpRequest</title>
+    <link rel="stylesheet" href="16_3.css" />
+  </head>
+
+  <body>
+    <form method="post" name="sendYear">
+      <span class="custom-dropdown">
+        <select id="selectYear">
+          <option value="">Select Year</option>
+          <option value="2017">2017</option>
+          <option value="2018">2018</option>
+          <option value="2019">2019</option>
+        </select>
+      </span>
+      <a type="submit" class="butt" onclick="checkReq()">REQUEST</a>
+    </form>
+
+    <div id="info"></div>
+
+    <table id="table" class="tb">
+      <thead></thead>
+      <tbody></tbody>
+    </table>
+
+    <script>
+      function checkReq() {
+        console.log("CLICK");
+        document.getElementById("info").innerHTML = "";
+        var selYear = document.getElementById("selectYear");
+        var selYearValue = selYear.value;
+        if (selYearValue == "") {
+          document.getElementById("info").innerHTML = "Please select Year";
+          document.querySelector("table thead").innerHTML = "";
+          document.querySelector("table tbody").innerHTML = "";
+        } else if (
+          selYearValue == 2017 ||
+          selYearValue == 2018 ||
+          selYearValue == 2019
+        ) {
+          console.log("selected: ", selYearValue);
+          reqJson(selYearValue);
+        } else {
+          console.log("Select right entry");
+          document.getElementById("info").innerHTML = "Select right entry";
+        }
+      }
+      function reqJson(selYearValue) {
+        let xhr = new XMLHttpRequest();
+        let resURL =
+          "https://my.api.mockaroo.com/revenue_2017-2019.json?key=fd36b440";
+
+        xhr.responseType = "json";
+
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState == 3) {
+            document.getElementById("info").innerHTML = "Загрузка (state 3)";
+          }
+          if (xhr.readyState == 4 && xhr.status == 200) {
+            document.getElementById("info").innerHTML = "Завершено (state 4)";
+          }
+        };
+        xhr.open("GET", resURL, true);
+        xhr.send();
+        xhr.onload = () => {
+          if (xhr.readyState == 4) {
+            if (xhr.status == 200) {
+              /* console.log(`Готово ${xhr.status}: ${xhr.statusText}`); */
+              const JsonRecev = xhr.response; // парсить не надо, приходит в нужном виде(object)
+              tableShow(selYearValue, JsonRecev);
+            } else {
+              console.log(`Ошибка ${xhr.status}: ${xhr.statusText}`); // Например, 404: Not Found
+              document.getElementById("info").innerHTML = `Ошибка ${xhr.status}: ${xhr.statusText}`
+            }
+          }
+        };
+        /*         xhr.onerror = () => {
+          console.log("Request failed! ${xhr.status}: ${xhr.statusText}");
+        }; */
+        function tableShow(selYearValue, JsonRecev) {
+          console.log(JSON.stringify(JsonRecev)); // обьект в json
+          console.log(selYearValue);
+          const year = JsonRecev.findIndex((a) => a.year == selYearValue);
+          console.log("year: ", year);
+          console.log(JsonRecev[year].sales);
+          let ToHtml = [JsonRecev[year].sales];
+          document.querySelector("table thead").innerHTML = `
+            <tr>
+                <th>q1</th>
+                <th>q2</th>
+                <th>q3</th>
+                <th>q4</th>
+            </tr>`;
+          document.querySelector("table tbody").innerHTML = ToHtml
+            .map(
+              (n) => `
+            <tr>
+                <td>${n.q1}</td>
+                <td>${n.q2}</td>
+                <td>${n.q3}</td>
+                <td>${n.q4}</td>
+            </tr>`
+            )
+            .join("");
+        }
+      }
+    </script>
+  </body>
+</html>
