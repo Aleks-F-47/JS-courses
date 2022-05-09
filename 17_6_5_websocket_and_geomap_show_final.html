@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>17_6_5</title>
+</head>
+
+<body>
+    <div>
+        <input type="text" id="MsgText" placeholder="Message text">
+        <input type="button" id="send_text" value="Send text message" />
+        <input type="button" id="send_geo" value="Geolocation" />
+    </div>
+    <div id="errors"></div>
+    <div id="msg"></div>
+</body>
+<script>
+
+        const from_client_to_html = (message) => {
+        if (message != "") {
+            const output = document.getElementById("msg");
+            var pre = document.createElement("p");
+            pre.style.wordWrap = "break-word";
+            pre.innerHTML = `<p style = "color:green;">CLIENT: ${message}</p>`;
+            output.appendChild(pre);
+        } else {
+            const output = document.getElementById("msg");
+            var pre = document.createElement("p");
+            pre.style.wordWrap = "break-word";
+            pre.innerHTML = `<p style = "color:red;">не балуй, введи текст</p>`;
+            output.appendChild(pre);
+        }
+    };
+    const webSocketMsg = (message) => {
+        return new Promise((resolve) => {
+            socket = new WebSocket('wss://ws.ifelse.io');
+            let result = [];
+            socket.onopen = function () {
+                console.log("Соединение установлено" + socket.readyState) // 1
+                socket.send(message)
+            }
+            socket.onmessage = function (msg) {
+
+                result.push(msg.data);
+                if (result.length == 2) {
+                    console.log("result[1] - " + result[1])
+                    resolve(result[1])
+                }
+            }
+        });
+    };
+    const from_server_to_html = (SocketMsg) => {
+        const output = document.getElementById("msg");
+        var pre = document.createElement("p");
+        pre.style.wordWrap = "break-word";
+        pre.innerHTML = `<p style = "color:blue; position: relative; left:100px;">SERVER: ${SocketMsg}</p>`;
+        output.appendChild(pre);
+        document.getElementById("MsgText").value = '';
+    };
+
+    const ReqGeo = async () => {
+        const options = {
+            maximumAge: 1000,
+            timeout: 15000,
+            enableHighAccuracy: true 
+        };
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(GeoPosition, GeoError, options);
+            function GeoPosition(position) {
+                const latit = position.coords.latitude
+                const long = position.coords.longitude
+                from_client_to_html(latit + "; " + long);
+            };
+            function GeoError(error) {
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        from_client_to_html("User denied the request for Geolocation.");
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        from_client_to_html("Location information is unavailable.");
+                        break;
+                    case error.TIMEOUT:
+                        from_client_to_html("The request to get user location timed out.");
+                        break;
+                    case error.UNKNOWN_ERROR:
+                        from_client_to_html("An unknown error occurred.");
+                        break;
+                }
+            };
+        } else {
+            from_client_to_html("Определение локации неподдерживается браузером.");
+        }
+    };
+
+    const main = async () => {
+        var message = document.getElementById("MsgText").value;
+        const from_client = from_client_to_html(message);
+        if (message != "") {
+            const SocketMsg = await webSocketMsg(message);
+            console.log("socket - " + SocketMsg);
+            const from_server = from_server_to_html(SocketMsg);
+        }
+    };
+    const geo = () => {
+        const Georequest = ReqGeo();
+    }
+
+    const txt = document.getElementById("send_text");
+    txt.addEventListener("click", main);
+
+    const geo_lock = document.getElementById("send_geo")
+    geo_lock.addEventListener("click", geo)
+
+</script>
+
+</html>
